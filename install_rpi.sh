@@ -31,31 +31,110 @@
 # Now you can run ./start.sh,  go to http://???:8080/freeboard to see.
 #
 # logs will be in /home/pi/freeboard/logs/start.log - send that if its still not up
-#
-#
-
-# Check the pi user, need  adm dialout cdrom floppy audio dip video admin
+# 
+# Modify the system account files to add user pi as a member of the following groups
+# Note that this will remove the pi user from any groups that are not listed
+#   adm,dialout,cdrom,floppy,audio,dip,video, and admin
 cd /home/pi
-
 sudo usermod -G adm,dialout,cdrom,floppy,audio,dip,video,admin pi
 
 ####################
-#make sure we are up to date
+read -p "Do you want to check for updates? [Y/N/Abort]" -n 1 -r
+####################
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+   sudo apt-get update
+   sudo apt-get upgrade
+fi
+if [[ $REPLY =~ ^[Aa]$ ]]
+then
+   exit 1
+fi
 
-sudo apt-get update
-sudo apt-get upgrade
 
-# add software we need
-sudo apt-get install zip unzip dnsmasq
-sudo apt-get install wpasupplicant usbutils wireless-tools iw hostapd
-sudo apt-get install oracle-java8-jdk
+####################
+read -p "Do you want to install zip, unzip, and dnsmasq? [Y/N/Abort]" -n 1 -r
+####################
+#  zip - package and compress (archive) files 
+#  unzip - list, test and extract compressed files in a ZIP archive
+#  dnsmasq - A lightweight DHCP and caching DNS server (Manages IP addresses)
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+   sudo apt-get install zip unzip dnsmasq
+fi
+if [[ $REPLY =~ ^[Aa]$ ]]
+then
+   exit 1
+fi
+####################
+read -p "Do you want to install wpasupplicant, usbutils, wireless-tools, iw, and hostapd? [Y/N/Abort]" -n 1 -r
+####################
+# See http://cberner.com/2013/02/03/using-hostapd-on-ubuntu-to-create-a-wifi-access-point/
+#  wpasupplicant - implements key negotiation with a IEEE 802.11 WPA Authenticator 
+#  usbutils - load the following tools:
+#     usb-devices is a (bash) shell script that can be used to display details of USB buses in the system and the devices connected to them
+#     lsusb is a utility for displaying information about USB buses in the system and the devices connected to them.
+#     update-usbids to download new version of the USB ID list
+#  wireless-tools - load the following tools:
+#     iwconfig to manipulate the basic wireless parameters
+#     iwlist to initiate scanning and list frequencies, bit-rates, encryption keys...
+#     iwspy to get per node link quality
+#     iwpriv to manipulate the Wireless Extensions specific to a driver (private)
+#     ifrename to name interfaces based on various static criteria
+#  iw - show / manipulate wireless devices and their configuration
+#  hostapd - creates a wireless access point
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+   sudo apt-get install wpasupplicant usbutils wireless-tools iw hostapd
+fi
+if [[ $REPLY =~ ^[Aa]$ ]]
+then
+   exit 1
+fi
 
-#Run the selection option to be sure you are using this version.
-sudo update-alternatives --install /usr/bin/javac javac /opt/jdk1.8.0/bin/javac 1
-sudo update-alternatives --install /usr/bin/java java /opt/jdk1.8.0/bin/java 1
 
-###################
-# extract the freeboard-server archive
+####################
+read -p "Do you want to install oracle-java8-jdk? [Y/N/Abort]" -n 1 -r
+####################
+# if you have problems see http://www.raspberrypi.org/forums/viewtopic.php?f=81&t=59036&p=442375&hilit=oracle+jdk#p442375
+echo
+
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+   echo Java will install in the /usr/lib/jvm directory
+   sudo apt-get install oracle-java8-jdk
+   #Run the selection option to be sure you are using this version.
+   sudo update-alternatives --install /usr/bin/javac javac /opt/jdk1.8.0/bin/javac 1
+   sudo update-alternatives --install /usr/bin/java java /opt/jdk1.8.0/bin/java 1
+fi
+if [[ $REPLY =~ ^[Aa]$ ]]
+then
+   exit 1
+fi
+
+
+####################  Not used in 5.10 - Delete this when certain that it isn't needed
+#read -p "Do you want to install gdal-bin, python-gdal, and imagemagick? [Y/N/Abort]" -n 1 -r
+####################
+# gdal-bin - Geospatial Data Abstraction Library: a set of tools for working with raster and vector geographic data.
+# python-gdal - GDAL’s Python interfaces for raster manipulation
+# imagemagick - software suite which can be used to create, edit and display bitmap images
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+#   sudo apt-get install gdal-bin python-gdal imagemagick
+fi
+if [[ $REPLY =~ ^[Aa]$ ]]
+then
+#   exit 1
+fi
+
+####################
+read -p "Do you want to extract the freeboard-server archive? [Y/N/Abort]" -n 1 -r
+####################
+# prior to this, you need to have copied the file over per the freeboard install notes
 FREEBOARD_CURRENT=freeboard-server-0.5.10-SNAPSHOT
 unzip $FREEBOARD_CURRENT-all.zip
 
@@ -109,6 +188,7 @@ sudo echo "" >> /etc/dnsmasq.conf
 sudo echo "#usb interface " >> /etc/dnsmasq.conf
 sudo echo "interface  usb0" >> /etc/dnsmasq.conf
 sudo echo "dhcp-range=192.168.7.1,192.168.7.1,12h" >> /etc/dnsmasq.conf
+
 
 
 ##################
